@@ -25,8 +25,8 @@ data = {
     "sell_price" : [],
     "area" : [],
     "floors" : [],
-    # "bedrooms" : [],
-    # "bathrooms" : [],
+    "bedrooms" : [],
+    "bathrooms" : [],
 }
 # 4.store each data
 for text in house_info:
@@ -52,6 +52,10 @@ for text in house_info:
     data["area"].append(area_value.text)
     
     #floors bedrooms bathrooms
+    floors_val = "-"
+    bedrooms_val = "-"
+    bathrooms_val = "-"
+    
     else_info = text.find_elements(By.CLASS_NAME,"card-prop-item")
     has_bedroom_filled = False 
     
@@ -60,23 +64,24 @@ for text in house_info:
         if "ตร.ม." in info_value:
             continue  
         
-        if "ชั้น" in info_value:
-            # ใช้ re.findall ดึงเฉพาะตัวเลข เช่น "2 ชั้น" -> 2
-            floors_num = re.findall(r'\d+', info_value)
-            if floors_num:
-                data["floors"].append(int(floors_num[0]))
-        # elif "ห้อง" in info_value:
-        #     rooms_num = re.findall(r'\d+', info_value)
-        #     if rooms_num:
-        #         num = int(rooms_num[0]) # ได้ตัวเลขจำนวนห้อง เช่น 4
-            
-        #     # เช็กว่า ข้อมูล "ห้องนอน" ของบ้านหลังนี้ถูกใส่ไปหรือยัง?
-        #     if not has_bedroom_filled:
-        #         data["bedrooms"].append(num)      # ใส่ในช่องห้องนอน
-        #         has_bedroom_filled = True         # เปิดสวิตช์บอกว่าใส่ห้องนอนแล้วนะ
-        #     else:
-        #         data["bathrooms"].append(num)     # ตัวถัดมาใส่ในช่องห้องน้ำ
-        #         has_bedroom_filled = False
+        elif "ชั้น" in info_value:
+            nums = re.findall(r'\d+', info_value)
+            if nums:
+                floors_val = int(nums[0])
+
+        elif "ห้อง" in info_value:
+            nums = re.findall(r'\d+', info_value)
+            if nums:
+                num = int(nums[0])
+               
+                if not has_bedroom_filled:
+                    bedrooms_val = num
+                    has_bedroom_filled = True
+                else:
+                    bathrooms_val = num
+    data["floors"].append(floors_val)
+    data["bedrooms"].append(bedrooms_val)
+    data["bathrooms"].append(bathrooms_val)
 
 # for i in data :
 #     print(i,len(data[i]))
