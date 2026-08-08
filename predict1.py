@@ -1,5 +1,24 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from ippx import IppClient
 from sklearn.linear_model import LinearRegression
+
+def print_file(file_path):
+    printer = IppClient(
+        "http://192.168.5.151:631/ipp/print"
+    )
+
+    with open(file_path, "rb") as file:
+        data = file.read()
+
+    with printer:
+        printer.print_job(
+            data,
+            document_format="image/jpeg",
+            job_name="AI Prediction"
+        )
+
+    print("Print job sent!")
 
 class AIModel:
     def __init__(self):
@@ -17,47 +36,60 @@ class AIModel:
             return None
         self.fit()
         return float(self.model.predict([[x]])[0])
-    def plot_ascii(self, pred_x, pred_y, height=10, width=35):
-        """วาดกราฟใน Terminal ด้วยตัวอักษร ASCII"""
-        all_x = [pt[0] for pt in self.X] + [pred_x]
-        all_y = self.Y + [pred_y]
+    def plot(self, pred_x, pred_y):
+        x = np.array([p[0] for p in self.X])
+        y = np.array(self.Y)
 
-        min_x, max_x = min(all_x), max(all_x)
-        min_y, max_y = min(all_y), max(all_y)
+        line_x = np.linspace(min(x), pred_x, 100)
+        line_y = self.model.predict(line_x.reshape(-1, 1))
 
-        range_x = max_x - min_x if max_x != min_x else 1
-        range_y = max_y - min_y if max_y != min_y else 1
+        plt.figure(figsize=(9, 6))
+        plt.scatter(x, y, s=80, label="Data")
+        plt.plot(line_x, line_y, linewidth=2, label="AI Regression")
+        plt.scatter(pred_x, pred_y, marker="X", s=200, label="AI Prediction")
 
-        canvas = [[" " for _ in range(width)] for _ in range(height)]
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("AI Linear Regression Prediction Results")
+        plt.grid(True)
+        plt.legend()
 
-        for x, y in zip(self.X, self.Y):
-            c = int((x[0] - min_x) / range_x * (width - 1))
-            r = height - 1 - int((y - min_y) / range_y * (height - 1))
-            canvas[r][c] = "O"
+        plt.text(
+            1, 0,
+            f"Prediction: x = {pred_x}, y = {pred_y:.2f}",
+            transform=plt.gca().transAxes,
+            ha="right", va="bottom"
+        )
+        file_path = r"C:\Users\Lenovo\OneDrive\Documents\work\Ai\yodnam1\picture\AI_prediction.jpg"
 
-        c_p = int((pred_x - min_x) / range_x * (width - 1))
-        r_p = height - 1 - int((pred_y - min_y) / range_y * (height - 1))
-        canvas[r_p][c_p] = "X"
+        plt.savefig(file_path, dpi=300, bbox_inches="tight")
 
-        print("\n" + "=" * 45)
-        print("  Terminal Graph  (O = Data, X = Prediction)")
-        print("=" * 45)
-        for i, row in enumerate(canvas):
-            val_y = max_y - i * (range_y / (height - 1))
-            print(f"{val_y:6.1f} | " + "".join(row))
-        print(" " * 8 + "-" * width)
-        print(" " * 8 + f"x={min_x:<{width-8}}x={max_x}")
+        plt.show()
+        plt.close()
+        return file_path
 
+#main program
 numx = int(input("How many x length do you need: "))
-ai = AIModel()
 
+ai = AIModel()
 for i in range(numx):
-    y = float(input(f"Enter y value in position {i+1}: "))
-    ai.add_point(i + 1, y)
+    y = float(input(f"Enter y value in position {i + 1}: "))
+    ai.add_point(i + 1,y)
 
 next_x = numx + 1
 predicted_y = ai.predict(next_x)
 
-print(f"\nAI predict when x={next_x}, y={predicted_y:.2f}")
+if predicted_y is None:
+    print("You need at least 2 data points.")
+else:
+    print(
+        f"\nAI predict when "
+        f"x={next_x}, "
+        f"y={predicted_y:.2f}"
+    )
+    # open a graph window to show the result
+    file_path = ai.plot(next_x, predicted_y)
 
-ai.plot_ascii(next_x, predicted_y)
+    print("Saved:", file_path)
+
+    print_file(file_path)   
