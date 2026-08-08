@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 from ippx import IppClient
 from sklearn.linear_model import LinearRegression
 
+networkID = "http://192.168.5.151:631/ipp/print"
+file_path = r"C:\Users\Lenovo\OneDrive\Documents\work\Ai\yodnam1\picture\AI_prediction.jpg"
+
 def print_file(file_path):
-    printer = IppClient(
-        "http://192.168.5.151:631/ipp/print"
-    )
+    printer = IppClient(networkID)
 
     with open(file_path, "rb") as file:
         data = file.read()
@@ -60,7 +61,6 @@ class AIModel:
             transform=plt.gca().transAxes,
             ha="right", va="bottom"
         )
-        file_path = r"C:\Users\Lenovo\OneDrive\Documents\work\Ai\yodnam1\picture\AI_prediction.jpg"
 
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
 
